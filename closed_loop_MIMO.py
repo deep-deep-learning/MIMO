@@ -11,6 +11,8 @@ from torch.utils import data
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
+print(device)
+
 train_snr = 15
 M = 16
 NN_T = 64
