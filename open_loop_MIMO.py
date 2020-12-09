@@ -9,8 +9,6 @@ from torch.utils import data
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-print(device)
-
 train_snr = 15
 M = 16
 NN_T = 64
@@ -82,7 +80,7 @@ criterion = nn.NLLLoss()
 opt = Adam(list(encoder.parameters())+list(decoder.parameters()), lr=0.001)
 
 loss = np.array([])
-batch = 2048
+batch = 204800
 # batch = 2000
 
 csi_real_set = torch.randn((M * batch, 2, 1)) / np.sqrt(2)
@@ -92,7 +90,7 @@ data_set = data.TensorDataset(csi_real_set, csi_imag_set)
 batch_size = 2048
 training_generator = data.DataLoader(data_set, batch_size=batch_size, shuffle=True)
 
-for epoches in np.arange(2):
+for epoches in np.arange(20):
     print('epoch =', epoches)
     for ch_real, ch_imag in training_generator:
         csi_real = ch_real.to(device)
@@ -128,6 +126,9 @@ for epoches in np.arange(2):
 
     l = cross_entropy.to('cpu').detach().numpy()
     loss = np.append(loss, l)
+
+torch.save(encoder.state_dict(), 'First Try/encoder.pt')
+torch.save(decoder.state_dict(), 'First Try/decoder.pt')
 
 def compute_sobol_indices(function, inputs, device):
     with torch.no_grad():
@@ -199,6 +200,11 @@ fc3_test_encoder.fc3.bias.data = encoder.fc3.bias.data
 inputs = encoder_inputs['fc3'][:num_samples]
 encoder_Si['fc3'] = compute_sobol_indices(fc3_test_encoder, inputs, device)
 
+np.save('First Try/encoder_Si_fc1.npy', encoder_Si['fc1'])
+np.save('First Try/encoder_Si_fc2.npy', encoder_Si['fc2'])
+np.save('First Try/encoder_Si_fc3.npy', encoder_Si['fc3'])
+
+'''
 class Decoder_fc1(nn.Module):
     def __init__(self):
         super(Decoder_fc1, self).__init__()
@@ -295,14 +301,8 @@ fc4_test_decoder.fc4.bias.data = decoder.fc4.bias.data
 inputs = decoder_inputs['fc4'][:num_samples]
 decoder_Si['fc4'] = compute_sobol_indices(fc4_test_decoder, inputs, device)
 
-torch.save(encoder.state_dict(), 'encoder.pt')
-torch.save(decoder.state_dict(), 'decoder.pt')
-
-np.save('encoder_Si_fc1.npy', encoder_Si['fc1'])
-np.save('encoder_Si_fc2.npy', encoder_Si['fc2'])
-np.save('encoder_Si_fc3.npy', encoder_Si['fc3'])
-
 np.save('decoder_Si_fc1.npy', decoder_Si['fc1'])
 np.save('decoder_Si_fc2.npy', decoder_Si['fc2'])
 np.save('decoder_Si_fc3.npy', decoder_Si['fc3'])
 np.save('decoder_Si_fc4.npy', decoder_Si['fc4'])
+'''
